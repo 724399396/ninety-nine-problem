@@ -51,7 +51,6 @@ def flatten(list: List[Any]): List[Any] = {
 }
 
 flatten(List(List(1, 1), 2, List(3, List(5, 8))))
-
 //p08
 def compress[A](list: List[A]): List[A] =
   list.foldLeft(List[A]())((acc,x) => acc match {
@@ -60,7 +59,6 @@ def compress[A](list: List[A]): List[A] =
   })
 
 compress(List('a, 'a, 'a, 'a, 'b, 'c, 'c, 'a, 'a, 'd, 'e, 'e, 'e, 'e))
-
 //p09
 def pack[A](list: List[A]): List[List[A]] = {
   list.foldLeft(List[List[A]]())((acc,x) => acc match {
@@ -68,7 +66,6 @@ def pack[A](list: List[A]): List[List[A]] = {
     case _ => if (x == acc.last.head) acc.init ++ List((x :: acc.last)) else acc ++ List(List(x))
   })
 }
-
 pack(List('a, 'a, 'a, 'a, 'b, 'c, 'c, 'a, 'a, 'd, 'e, 'e, 'e, 'e))
 
 //p10
@@ -110,7 +107,6 @@ def encodeDirect[A](list: List[A]): List[(Int,A)] =
       }
     }
   })
-
 encodeDirect(List('a, 'a, 'a, 'a, 'b, 'c, 'c, 'a, 'a, 'd, 'e, 'e, 'e, 'e))
 
 //p14
@@ -128,7 +124,6 @@ duplicateN(3, List('a, 'b, 'c, 'c, 'd))
 //p16
 def drop[A](nIndex: Int, list: List[A]): List[A] =
   list.grouped(nIndex).map(_.init).flatten.toList
-
 drop(3, List('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k))
 
 //p17
@@ -142,13 +137,11 @@ def split[A](nIndex: Int, list: List[A]): (List[A], List[A]) = {
     }
   help(nIndex, List(), list)
 }
-
 split(3, List('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k))
 
 //p18
 def slice[A](start: Int, end: Int, list: List[A]): List[A] =
   (for(index <- start until end) yield list(index)).toList
-
 slice(3, 7, List('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k))
 
 //p19
@@ -167,3 +160,24 @@ def removeAt[A](loc: Int, list: List[A]): (List[A],A) = {
 }
 
 removeAt(1, List('a, 'b, 'c, 'd))
+
+//p21
+def insertAt[A](ele: A, loc: Int, list: List[A]): List[A] =
+  (slice(0,loc,list) ++ List(ele) ++ slice(loc,list.length,list))
+
+insertAt('new, 1, List('a, 'b, 'c, 'd))
+
+//p21
+def range(start: Int, end: Int): List[Int] = {
+  def help(a: Int, b: Int, res: List[Int]): List[Int] = {
+    if (a > b)
+      res
+    else {
+      help(a+1,b, res ++ List(a))
+    }
+  }
+  help(start,end,List[Int]())
+}
+
+range(4,9)
+
