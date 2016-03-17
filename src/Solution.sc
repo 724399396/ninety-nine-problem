@@ -76,3 +76,94 @@ def encode[A](list: List[A]): List[(Int,A)] =
   pack(list).map(x => (x.length, x.head))
 
 encode(List('a, 'a, 'a, 'a, 'b, 'c, 'c, 'a, 'a, 'd, 'e, 'e, 'e, 'e))
+
+
+//p11
+def encodeModified[A](list: List[A]): List[Any] =
+  pack(list).map(x => if (x.length > 1) (x.length, x.head) else x.head)
+
+encodeModified(List('a, 'a, 'a, 'a, 'b, 'c, 'c, 'a, 'a, 'd, 'e, 'e, 'e, 'e))
+
+//p12
+def decode(list: List[Any]): List[Any] =
+  list.foldLeft(List[Any]())((acc,x) => {
+    x match {
+      case Tuple2(n,ele) => n match {
+        case n: Int => acc ++ List.fill(n)(ele)
+      }
+    }
+  })
+
+decode(List((4, 'a), (1, 'b), (2, 'c), (2, 'a), (1, 'd), (4, 'e)))
+
+//p13
+def encodeDirect[A](list: List[A]): List[(Int,A)] =
+  list.foldLeft(List[(Int,A)]())((acc,x) => {
+    acc match {
+      case Nil => List((1,x))
+      case xs => {
+        val ele = xs.last._2
+        if (x == ele)
+          xs.init ++ List((xs.last._1 + 1, x))
+        else
+          xs ++ List((1,x))
+      }
+    }
+  })
+
+encodeDirect(List('a, 'a, 'a, 'a, 'b, 'c, 'c, 'a, 'a, 'd, 'e, 'e, 'e, 'e))
+
+//p14
+def duplicate[A](list: List[A]): List[A] =
+  list.map(x => List(x,x)).flatten
+
+duplicate(List('a, 'b, 'c, 'c, 'd))
+
+//p15
+def duplicateN[A](repeat: Int, list: List[A]): List[A] =
+  list.map(x => List.fill(repeat)(x)).flatten
+
+duplicateN(3, List('a, 'b, 'c, 'c, 'd))
+
+//p16
+def drop[A](nIndex: Int, list: List[A]): List[A] =
+  list.grouped(nIndex).map(_.init).flatten.toList
+
+drop(3, List('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k))
+
+//p17
+def split[A](nIndex: Int, list: List[A]): (List[A], List[A]) = {
+  def help[A](n: Int, left: List[A], right: List[A]): (List[A], List[A]) =
+    if (n <= 0)
+      (left, right)
+    else {
+      val ele = right.head
+      help(n - 1, left ++ List(ele), right.tail)
+    }
+  help(nIndex, List(), list)
+}
+
+split(3, List('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k))
+
+//p18
+def slice[A](start: Int, end: Int, list: List[A]): List[A] =
+  (for(index <- start until end) yield list(index)).toList
+
+slice(3, 7, List('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k))
+
+//p19
+def rotate[A](location: Int, list: List[A]): List[A] = {
+  val trueLoc = if(location >= 0) location else location + list.length
+  (for (index <- trueLoc until (trueLoc + list.length))
+    yield list(index % list.length)).toList
+}
+
+rotate(3, List('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k))
+rotate(-2, List('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k))
+
+//p20
+def removeAt[A](loc: Int, list: List[A]): (List[A],A) = {
+  (slice(0,loc,list) ++ slice(loc+1,list.length,list), list(loc))
+}
+
+removeAt(1, List('a, 'b, 'c, 'd))
