@@ -1,14 +1,16 @@
+import scala.util.Random
+
 //p01
 def last[A](list: List[A]): A = list match {
   case x :: Nil => x
-  case x :: xs => last(xs)
+  case _ :: xs => last(xs)
   case _ => throw new NoSuchElementException
 }
 last(List(1,1,2,3,5,8))
 //p02
 def penultimate[A](list: List[A]): A = list match {
-  case x :: y :: Nil => x
-  case x :: xs => penultimate(xs)
+  case x :: _ :: Nil => x
+  case _ :: xs => penultimate(xs)
 }
 
 penultimate(List(1,1,2,3,5,8))
@@ -57,7 +59,6 @@ def compress[A](list: List[A]): List[A] =
     case Nil => List(x)
     case _ => if (x == acc.last) acc else acc ++ List(x)
   })
-
 compress(List('a, 'a, 'a, 'a, 'b, 'c, 'c, 'a, 'a, 'd, 'e, 'e, 'e, 'e))
 //p09
 def pack[A](list: List[A]): List[List[A]] = {
@@ -108,7 +109,6 @@ def encodeDirect[A](list: List[A]): List[(Int,A)] =
     }
   })
 encodeDirect(List('a, 'a, 'a, 'a, 'b, 'c, 'c, 'a, 'a, 'd, 'e, 'e, 'e, 'e))
-
 //p14
 def duplicate[A](list: List[A]): List[A] =
   list.map(x => List(x,x)).flatten
@@ -120,7 +120,6 @@ def duplicateN[A](repeat: Int, list: List[A]): List[A] =
   list.map(x => List.fill(repeat)(x)).flatten
 
 duplicateN(3, List('a, 'b, 'c, 'c, 'd))
-
 //p16
 def drop[A](nIndex: Int, list: List[A]): List[A] =
   list.grouped(nIndex).map(_.init).flatten.toList
@@ -167,7 +166,7 @@ def insertAt[A](ele: A, loc: Int, list: List[A]): List[A] =
 
 insertAt('new, 1, List('a, 'b, 'c, 'd))
 
-//p21
+//p22
 def range(start: Int, end: Int): List[Int] = {
   def help(a: Int, b: Int, res: List[Int]): List[Int] = {
     if (a > b)
@@ -181,3 +180,33 @@ def range(start: Int, end: Int): List[Int] = {
 
 range(4,9)
 
+//p23
+def randomSelect[A](n: Int, list: List[A]): List[A] = {
+  if (n <= 0)
+    Nil
+  else {
+    val rand = new Random()
+    removeAt(rand.nextInt(list.size), list) match {
+      case (rest, x) => x :: randomSelect(n - 1, rest)
+    }
+  }
+}
+
+randomSelect(3, List('a, 'b, 'c, 'd, 'f, 'g, 'h))
+
+//p24
+def lotto(from: Int, to: Int): List[Int] = {
+  val rand = new Random()
+  if (rand.nextBoolean())
+    (from + rand.nextInt(to - from)) :: lotto(from, to)
+  else
+    Nil
+}
+
+lotto(6, 49)
+
+//p25
+def randomPermute[A](list: List[A]): List[A] =
+  randomSelect(list.length, list)
+
+randomPermute(List('a, 'b, 'c, 'd, 'e, 'f))
