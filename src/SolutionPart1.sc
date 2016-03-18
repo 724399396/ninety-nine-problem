@@ -51,7 +51,6 @@ def flatten(list: List[Any]): List[Any] = {
     case _ => acc ++ List(x)
   })
 }
-
 flatten(List(List(1, 1), 2, List(3, List(5, 8))))
 //p08
 def compress[A](list: List[A]): List[A] =
@@ -157,7 +156,6 @@ rotate(-2, List('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i, 'j, 'k))
 def removeAt[A](loc: Int, list: List[A]): (List[A],A) = {
   (slice(0,loc,list) ++ slice(loc+1,list.length,list), list(loc))
 }
-
 removeAt(1, List('a, 'b, 'c, 'd))
 
 //p21
@@ -179,7 +177,6 @@ def range(start: Int, end: Int): List[Int] = {
 }
 
 range(4,9)
-
 //p23
 def randomSelect[A](n: Int, list: List[A]): List[A] = {
   if (n <= 0)
@@ -210,3 +207,71 @@ def randomPermute[A](list: List[A]): List[A] =
   randomSelect(list.length, list)
 
 randomPermute(List('a, 'b, 'c, 'd, 'e, 'f))
+
+//p26
+def combinations[A](n: Int, list: List[A]): List[List[A]] = {
+  val indexList = (0 until list.length).toList
+  def help(left: Int, acc: List[List[Int]]): List[List[Int]] = {
+    if (left <= 1)
+      acc
+    else {
+      help(left-1, acc.flatMap{xs => {
+        indexList.filter(x => x > xs.last).map(x => xs ++ List(x))
+      }})
+    }
+  }
+  def index2Element(index: List[List[Int]]): List[List[A]] = {
+    index.map(out => out.map(x => list(x)))
+  }
+  index2Element(help(n, indexList.map(List(_))))
+}
+
+combinations(3, List('a, 'b, 'c, 'd, 'e, 'f))
+
+//p27
+def group3[A](list: List[A]):List[List[List[A]]] = {
+  for {
+    a <- combinations(2,list)
+    noA = list.filterNot(a.contains)
+    b <- combinations(3, noA)
+  } yield List(a,b,noA.filterNot(b.contains))
+}
+
+group3(List("Aldo", "Beat", "Carla", "David", "Evi", "Flip", "Gary", "Hugo", "Ida"))
+
+def group[A](sizeList: List[Int], list: List[A]):List[List[List[A]]] = {
+  sizeList match {
+    case Nil => List(Nil)
+    case x :: xs =>
+      combinations(x, list) flatMap {
+        c => group(xs, list.filterNot(c.contains)).map(c :: _)
+      }
+  }
+}
+
+group(List(2, 2, 5), List("Aldo", "Beat", "Carla", "David", "Evi", "Flip", "Gary", "Hugo", "Ida"))
+
+//p28
+def lsort[A](list: List[List[A]]): List[List[A]] = {
+  list.sortWith((x,y) => x.length < y.length)
+}
+
+lsort(List(List('a, 'b, 'c), List('d, 'e), List('f, 'g, 'h), List('d, 'e), List('i, 'j, 'k, 'l), List('m, 'n), List('o)))
+
+def lsortFreq[A](list: List[List[A]]): List[List[A]] = {
+  def sortWithFreq(t1: (Int,Int), t2: (Int,Int)): Boolean =
+    t1._2 < t2._2
+  val lengthList= list.map(_.length)
+  lengthList.map{xl =>
+    (xl, lengthList.filter(_ == xl).size)
+  }.sortWith(sortWithFreq).map(x => x._1).foldLeft(List[List[A]]()) {
+    (acc,x) =>
+      val add = list.filter(_.length == x)
+      if (acc.contains(add.head))
+        acc
+      else
+        acc ++ add
+  }
+}
+
+lsortFreq(List(List('a, 'b, 'c), List('d, 'e), List('f, 'g, 'h), List('d, 'e), List('i, 'j, 'k, 'l), List('m, 'n), List('o)))
