@@ -1,3 +1,5 @@
+import SolutionPart4.PositionedNode
+
 object SolutionPart4 extends App {
 
   sealed abstract class Tree[+T] {
@@ -24,10 +26,18 @@ object SolutionPart4 extends App {
     def layoutBinaryTree: Tree[T]
 
     def layoutBinaryTree2: Tree[T]
+
+    def layoutBinaryTree3: Tree[T]
+
+    def preorder: List[T]
+
+    def inorder: List[T]
+
+    def toDotstring: String
   }
 
   case object End extends Tree[Nothing] {
-    override def toString = "."
+    override def toString = ""
 
     override def isSymmetric = true
 
@@ -52,10 +62,26 @@ object SolutionPart4 extends App {
     override def layoutBinaryTree: Tree[Nothing] = End
 
     override def layoutBinaryTree2: Tree[Nothing] = End
+
+    override def layoutBinaryTree3: Tree[Nothing] = End
+
+    override def preorder: List[Nothing] = List()
+
+    override def inorder: List[Nothing] = List()
+
+    override def toDotstring: String = "."
   }
 
   case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
-    override def toString = "T(" + value.toString + " " + left.toString + " " + right.toString + ")"
+    override def toString = this match {
+      case Node(x,End,End) => x.toString
+      case Node(x,l,r) => value.toString + "(" + left.toString + "," + right.toString + ")"
+    }
+
+    override def toDotstring: String = this match {
+      case Node(x,End,End) => x.toString + ".."
+      case Node(x,l,r) => value.toString + left.toDotstring + right.toDotstring
+    }
 
     override def isSymmetric = this match {
       case Node(_, End, End) => true
@@ -134,9 +160,6 @@ object SolutionPart4 extends App {
       def help(tree: Tree[T], lSize: Int, isRight: Boolean, level: Int): Tree[T] = {
         tree match {
           case node@Node(x, l, r) =>
-            if (x == 'a') {
-              println('a')
-            }
             val common = math.pow(2,maxLevel - level).toInt
             val xLoc = if(isRight) lSize + common else lSize - common
             PositionedNode(x, help(l,xLoc, false, level+1), help(r,xLoc, true,level+1), xLoc, level)
@@ -145,14 +168,65 @@ object SolutionPart4 extends App {
       }
       help(this,Math.pow(2,height).toInt-1,false,1)
     }
+
+    override def layoutBinaryTree3: Tree[T] = {
+      def help(tree: Tree[T], lSize: Int, level: Int): Tree[T] = {
+        tree match {
+          case node@Node(x, l, r) =>
+            val left = help(l,lSize-1, level+1)
+            var offSet = 1
+            var right = help(r,lSize+offSet, level+1)
+            while({
+              val leftLoc = subNodeLoc(left)
+              val rightLoc = subNodeLoc(right)
+              val sameY =
+                for {
+                  (x1,y1) <- leftLoc;
+                  (x2,y2) <- rightLoc
+                  if (y1 == y2)
+                } yield ((x1,y1),(x2,y2))
+              leftLoc.size > 0 && rightLoc.size > 0 && sameY.size > 1 && (sameY.find {
+                case ((x1, _), (x2, _)) => x1 >= x2
+              } match {
+                case None => false
+                case Some(_) => true
+              })
+            }) {
+              offSet += 1
+              right = help(r, lSize+offSet+1, level+1)
+            }
+            PositionedNode(x, left, right, lSize+offSet-1, level)
+          case End => End
+        }
+      }
+      def subNodeLoc(tree: Tree[T]): List[(Int,Int)] = tree match {
+        case End => Nil
+        case PositionedNode(_,l,r,x,y) => List((x,y)) ++ subNodeLoc(l) ++ subNodeLoc(r)
+        case Node(_,_,_) => Nil
+      }
+
+      help(this,this.left.height,1)
+    }
+
+    override def preorder: List[T] = this match {
+      case Node(x,l,r) => List(x) ++ l.preorder ++ r.preorder
+    }
+
+    override def inorder: List[T] = this match {
+      case Node(x,l,r) => l.inorder ++ List(x) ++ r.inorder
+    }
+
+
   }
 
-  class PositionedNode[+T](override val value: T, override val left: Tree[T], override val right: Tree[T], x: Int, y: Int) extends Node[T](value, left, right) {
+  class PositionedNode[+T](override val value: T, override val left: Tree[T], override val right: Tree[T], val x: Int, val y: Int) extends Node[T](value, left, right) {
     override def toString = "T[" + x.toString + "," + y.toString + "](" + value.toString + " " + left.toString + " " + right.toString + ")"
   }
 
   object PositionedNode {
     def apply[T](value: T, l: Tree[T], r: Tree[T], x: Int, y: Int) = new PositionedNode(value,l,r,x,y)
+    def unapply[T](positionedNode: PositionedNode[T]): Option[(T,Tree[T],Tree[T],Int,Int)]
+    = Some((positionedNode.value,positionedNode.left,positionedNode.right,positionedNode.x,positionedNode.y))
   }
 
   def isMirrorOf[T](t1: Tree[T], t2: Tree[T]): Boolean = {
@@ -230,6 +304,65 @@ object SolutionPart4 extends App {
       }
       help(1)
     }
+
+    def fromString(str: String): Tree[String] = {
+      def strSplit(s: String): (String,String,String) = {
+        var parenthessNum = 0
+        var loc = 0
+        for(i <- 0 until s.length) {
+          if(s(i) == '(') {
+            parenthessNum += 1
+          }
+          if (s(i) == ')') {
+            parenthessNum -= 1
+          }
+          if (parenthessNum == 1 && s(i) == ',') {
+            loc = i
+          }
+        }
+        str.splitAt(loc) match {
+          case (l,r) =>
+            (l.substring(0,1), l.substring(2), r.substring(1,r.length-1))
+        }
+      }
+
+      str match {
+        case "" => End
+        case x if x.length == 1 => Node(x)
+        case seq =>
+          val(x,l,r) = strSplit(seq)
+          Node(x,fromString(l),fromString(r))
+      }
+    }
+
+    def string2Tree(str: String): Tree[String] = fromString(str)
+
+    def preInTree(preorder: List[Char], inorder: List[Char]): Tree[Char] = {
+      (preorder, inorder) match {
+        case (x :: Nil, ys) =>
+          Node(x)
+        case (Nil,Nil) =>
+          End
+        case (x :: xs, ys) =>
+          val loc = ys.zipWithIndex.filter{case (y,_) => y == x }.apply(0)._2
+          val leftIn = ys.take(loc)
+          val rightIn = ys.drop(loc+1)
+          val leftPre = xs.take(loc)
+          val rightPre = xs.drop(loc)
+          Node(x, preInTree(leftPre,leftIn), preInTree(rightPre,rightIn))
+      }
+    }
+
+    def fromDotstring(str: String): Tree[Char] = {
+      def help(loc: Int): (Tree[Char],Int) = str(loc) match {
+        case '.' => (End,loc+1)
+        case c =>
+          val (leftNode, leftLoc) = help(loc+1)
+          val (rightNode, rightLoc) = help(leftLoc)
+          (Node(c,leftNode,rightNode),rightLoc)
+      }
+      help(0)._1
+    }
   }
 
   def minHbalNodes(height: Int): Int = {
@@ -271,4 +404,14 @@ object SolutionPart4 extends App {
   println(Node('a', Node('b', End, Node('c')), Node('d')).layoutBinaryTree)
   println(Tree.fromList(List('n','k','m','c','a','h','g','e','u','p','s','q')).layoutBinaryTree)
   println(Tree.fromList(List('n','k','m','c','a','e','d','g','u','p','q')).layoutBinaryTree2)
+  println(Tree.fromList(List('n','k','m','c','a','e','d','g','u','p','q')).layoutBinaryTree3)
+
+  println(Node('a', Node('b', Node('d'), Node('e')), Node('c', End, Node('f', Node('g'), End))).toString)
+  println(Tree.fromString("a(b(d,e),c(,f(g,)))"))
+  println(Tree.string2Tree("a(b(d,e),c(,f(g,)))").preorder)
+  println(Tree.string2Tree("a(b(d,e),c(,f(g,)))").inorder)
+  println(Tree.preInTree(List('a', 'b', 'd', 'e', 'c', 'f', 'g'), List('d', 'b', 'e', 'a', 'c', 'g', 'f')))
+  println(Tree.preInTree(List('a', 'b', 'a'), List('b', 'a', 'a')))
+  println(Tree.string2Tree("a(b(d,e),c(,f(g,)))").toDotstring)
+  println(Tree.fromDotstring("abd..e..c.fg..."))
 }
