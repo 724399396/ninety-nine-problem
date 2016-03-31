@@ -28,6 +28,14 @@ object SolutionPart6 extends App {
       val n = new Node(value)
       nodes = Map(value -> n) ++ nodes
     }
+
+    def findPaths(v1: T, v2: T): List[List[T]] = {
+      (nodes(v1).neighbors.map(_.value).filter(_ == v2) headOption match {
+        case Some(x) => List(v1,x)
+        case None => Nil
+      })::
+        nodes(v1).neighbors.map(_.value).filter(_ != v2).flatMap(this.findPaths(_,v2)).filter(_.length > 0).map(v1 :: _)
+    }
   }
 
   class Graph[T, U] extends GraphBase[T, U] {
@@ -88,6 +96,10 @@ object SolutionPart6 extends App {
       nodes(source).adj = e :: nodes(source).adj
     }
 
+    def toTermForm: (List[T], List[(T,T,U)]) = {
+      (nodes.keys.toList, edges.map(_.toTuple))
+    }
+
     def toAdjacentForm: List[(T,List[(T,U)])] = {
       nodes.values.toList.map{node =>
         (node.value, node.adj.map(x => (x.n2.value, x.value)))
@@ -119,4 +131,10 @@ object SolutionPart6 extends App {
   println(Graph.fromString("[b-c, f-c, g-h, d, f-b, k-f, h-g]").toTermForm)
 
   println(Digraph.fromStringLabel("[p>q/9, m>q/7, k, p>m/5]").toAdjacentForm)
+
+  println(Digraph.fromStringLabel("[p>q/9, m>q/7, k, p>m/5]").findPaths("p", "q"))
+
+  println(Digraph.fromStringLabel("[p>q/9, m>q/7, k, p>m/5]").findPaths("p", "k"))
+
+  println(Graph.fromString("[b-c, f-c, g-h, d, f-b, k-f, h-g]").findCycles("f"))
 }
