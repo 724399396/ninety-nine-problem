@@ -1,0 +1,25 @@
+(
+ :root-dir "/home/work/learning/scala/ninety-nine-problem"
+ :cache-dir "/home/work/learning/scala/ninety-nine-problem/.ensime_cache"
+ :scala-compiler-jars ("/home/liwwli/.sbt/boot/scala-2.10.6/lib/scala-compiler.jar" "/home/liwwli/.sbt/boot/scala-2.10.6/lib/scala-library.jar" "/home/liwwli/.sbt/boot/scala-2.10.6/lib/scala-reflect.jar" "/home/liwwli/.ivy2/cache/org.scala-lang/scalap/jars/scalap-2.10.6.jar")
+ :name "ninety-nine-problem"
+ :java-home "/home/q/jdk1.8.0_45"
+ :java-flags ("-Xss2m" "-Xms1024m" "-Xmx1024m" "-XX:ReservedCodeCacheSize=128m" "-XX:MaxMetaspaceSize=256m")
+ :reference-source-roots ("/home/q/jdk1.8.0_45/src.zip")
+ :scala-version "2.10.6"
+ :compiler-args ("-feature" "-deprecation" "-Xlint" "-Yinline-warnings" "-Yno-adapted-args" "-Ywarn-dead-code" "-Ywarn-numeric-widen" "-Xfuture")
+ :formatting-prefs nil
+ :disable-source-monitoring nil
+ :disable-class-monitoring nil
+ :subprojects ((
+   :name "ninety-nine-problem"
+   :source-roots nil
+   :targets ("/home/work/learning/scala/ninety-nine-problem/target/scala-2.10/classes")
+   :test-targets ("/home/work/learning/scala/ninety-nine-problem/target/scala-2.10/test-classes")
+   :depends-on-modules nil
+   :compile-deps ("/home/liwwli/.sbt/boot/scala-2.10.6/lib/scala-library.jar")
+   :runtime-deps nil
+   :test-deps nil
+   :doc-jars ("/home/work/learning/scala/ninety-nine-problem/target/scala-2.10/ninety-nine-problem_2.10-0.1-SNAPSHOT-javadoc.jar" "/home/liwwli/.ivy2/cache/org.scala-lang/scala-library/docs/scala-library-2.10.6-javadoc.jar")
+   :reference-source-roots ("/home/liwwli/.ivy2/cache/org.scala-lang/scala-library/srcs/scala-library-2.10.6-sources.jar")))
+)
