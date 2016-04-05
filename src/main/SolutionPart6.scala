@@ -7,6 +7,7 @@ object SolutionPart6 extends App {
     case class Node(value: T) {
       var adj: List[Edge] = Nil
       def neighbors: List[Node] = adj.map(edgeTarget(_,this).get)
+      def degree: Int = adj.size
     }
 
     var nodes: Map[T, Node] = Map()
@@ -99,6 +100,43 @@ object SolutionPart6 extends App {
 
     def toTermForm: (List[T], List[(T,T,U)]) = {
       (nodes.keys.toList, edges.map(_.toTuple))
+    }
+
+    def isIsomorphicTo(that: Graph[String, Unit]): Boolean = {
+      val thisVal = this.edges.map{
+        case Edge(n1,n2,_) =>
+          (n1.value.asInstanceOf[String].sum, n2.value.asInstanceOf[String].sum)
+      }.sortBy(_._1)
+
+      val thatVal = that.edges.map{
+        case that.Edge(n1,n2,_) =>
+          (n1.value.sum, n2.value.sum)
+      }.sortBy(_._1)
+
+      thisVal.zip(thatVal).map{
+        case ((x1,y1),(x2,y2)) => ((x1-y1), (x2-y2))
+      }.forall{
+        case (x,y) => println(x); println(y); x == y
+      }
+    }
+
+    def nodesByDegree = {
+      nodes.values.toList.sortBy(-_.degree)
+    }
+
+    def colorNodes = {
+      val v = nodesByDegree
+      val c = 1 to nodes.keys.size toList
+      def help(v: List[Node], c: List[Int]): Map[Node, Int] = {
+        v match {
+          case Nil => Map()
+          case x :: xs => xs.partition(!x.neighbors.contains(_)) match {
+            case (m,nm) => Map(x -> c.head) ++ m.map((_ -> c.head)).toMap ++ help(nm, c.tail)
+          }
+        }
+      }
+      val map = help(v,c)
+      v.map(x => (x,map(x)))
     }
 
     override def toString = edges.map(x => x.n1.value + "-" + x.n2.value + (
@@ -195,9 +233,18 @@ object SolutionPart6 extends App {
 
   println(Digraph.fromStringLabel("[p>q/9, m>q/7, k, p>m/5]").findPaths("p", "k"))
 
-  println(Graph.fromString("[b-c, f-c, g-h, d, f-b, k-f, h-g]").findCycles("f")) */
+  println(Graph.fromString("[b-c, f-c, g-h, d, f-b, k-f, h-g]").findCycles("f"))
 
   println(Graph.fromString("[a-b, b-c, a-c]").spanningTrees)
 
   println(Digraph.fromStringLabel("[a-b/1, b-c/2, a-c/3]").minimalSpanningTree)
+
+  println(Graph.fromString("[a-b]").isIsomorphicTo(Graph.fromString("[5-7]")))
+
+  println(Graph.fromString("[a-b, b-c, a-c, a-d]").nodes("a").degree)
+
+  println(Graph.fromString("[a-b, b-c, a-c, a-d]").nodesByDegree) */
+
+  println(Graph.fromString("[a-b, b-c, a-c, a-d]").colorNodes)
 }
+

@@ -1,5 +1,3 @@
-import SolutionPart4.PositionedNode
-
 object SolutionPart4 extends App {
 
   sealed abstract class Tree[+T] {
