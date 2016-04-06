@@ -77,6 +77,40 @@ object SolutionPart6 extends App {
         graph.edges.map(_.value.asInstanceOf[Int]).sum
       }
     }
+
+    def nodesByDepthFrom(n: T): List[T] = {
+      val set = collection.mutable.MutableList[Node]()
+      def help(node: T): Unit = {
+        set += nodes(node)
+        for(neighbor <- nodes(node).neighbors) {
+          if (!set.contains(neighbor)) {
+            help(neighbor.value)
+          }
+        }
+      }
+      help(n)
+      set.toList.reverse.map(_.value)
+    }
+
+    def splitGraph: List[Graph[T,U]] = {
+      def help(node: List[Node]): List[Graph[T,U]] = node match {
+        case Nil => Nil
+        case x :: xs =>
+          val connect = nodesByDepthFrom(x.value)
+          buildGraph(connect) :: help(xs.filter(x => !connect.contains(x.value)))
+      }
+      def buildGraph(list: List[T]): Graph[T,U] = {
+        val graph = new Graph[T,U]
+        list.foreach(x =>
+          graph.addNode(x)
+        )
+        this.edges.filter(x => list.contains(x.n1.value) || list.contains(x.n2.value)).foreach(
+          x => graph.addEdge(x.n1.value, x.n2.value, x.value)
+        )
+        graph
+      }
+      help(nodes.values.toList)
+    }
   }
 
   class Graph[T, U] extends GraphBase[T, U] {
@@ -139,9 +173,9 @@ object SolutionPart6 extends App {
       v.map(x => (x,map(x)))
     }
 
-    override def toString = edges.map(x => x.n1.value + "-" + x.n2.value + (
+    override def toString = (edges.map(x => x.n1.value + "-" + x.n2.value + (
       if (x.value != ()) "/" + x.value else ""
-      )).mkString("[",",","]")
+      )) ++ nodes.keys.filterNot{x => edges.exists(y => y.n1.value == x || y.n2.value == x)}).mkString("[",",","]")
   }
 
   object Graph {
@@ -243,8 +277,12 @@ object SolutionPart6 extends App {
 
   println(Graph.fromString("[a-b, b-c, a-c, a-d]").nodes("a").degree)
 
-  println(Graph.fromString("[a-b, b-c, a-c, a-d]").nodesByDegree) */
+  println(Graph.fromString("[a-b, b-c, a-c, a-d]").nodesByDegree)
 
   println(Graph.fromString("[a-b, b-c, a-c, a-d]").colorNodes)
+
+  println(Graph.fromString("[a-b, b-c, e, a-c, a-d]").nodesByDepthFrom("d")) */
+
+  println(Graph.fromString("[a-b, c]").splitGraph)
 }
 
