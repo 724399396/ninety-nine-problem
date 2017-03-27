@@ -1,4 +1,5 @@
 import Data.List
+import System.Random (getStdGen, randomRs, randomRIO)
 
 myLast :: [a] -> a
 myLast [] = error "No end for empty lists!"
@@ -107,3 +108,70 @@ removeAt n xs =  (helper1 xs n, helper2 xs n)
     helper1 (_:xs) n = helper1 xs (n-1)
     helper2 (_:xs) 1 = xs
     helper2 (x:xs) n = x : (helper2 xs (n-1))
+
+--21 
+insertAt :: a -> [a] -> Int -> [a]
+insertAt x xs n = let (h,t) = splitAt (n-1) xs
+                  in
+                    (h ++ (x:t))
+
+-- 22
+range :: Integral a => a -> a -> [a]
+range low high
+  | low > high = []
+  | otherwise = low : range (low+1) high
+
+-- 23
+rnd_select :: [a] -> Int -> IO [a]
+rnd_select xs n = do
+  let l = length xs
+  stdGen <- getStdGen
+  return $ map (xs!!) $ take n $ randomRs (1,l) stdGen
+
+
+
+--24
+rnd_select_from_list :: Eq a => Int -> [a] -> IO [a]
+rnd_select_from_list 0 _ = return []
+rnd_select_from_list n xs = do
+          loc <- randomRIO (0, length xs - 1)
+          let x = xs !! loc
+          left <- rnd_select_from_list (n-1) (delete x xs)
+          return $ x:left
+
+
+diff_select :: Int -> Int -> IO [Int]
+diff_select n high =
+  rnd_select_from_list n [1..high]
+         
+--25
+rnd_permu :: Eq a => [a] -> IO [a]
+rnd_permu xs = rnd_select_from_list (length xs) xs
+
+--26
+combinations :: Ord a => Int -> [a] -> [[a]]
+combinations 0 _ = [[]]
+combinations n xs = nub $ map sort $ do
+  x <- xs
+  left <- combinations (n-1) (delete x xs)
+  return $ x:left
+
+--27
+my_group :: Ord a => [Int] -> [a] -> [[[a]]]
+my_group [] _ = [[[]]]
+my_group ns xs = nub $ map sort $ do
+  n <- ns
+  hs <- combinations n xs
+  left <- my_group (tail ns) (xs \\ hs)
+  return $ map (hs++) left
+
+--28
+lsort :: [[a]] -> [[a]]
+lsort = sortOn length
+
+lfsort :: Ord a => [[a]] -> [[a]]
+lfsort xs = reverse $ sortOn freLoc xs
+  where
+    freqs = sort $ map length xs
+    freqLenthSort = map head $ sortOn length $ group freqs
+    freLoc x = maybe (-1) id (find (==(length x)) freqLenthSort)    
