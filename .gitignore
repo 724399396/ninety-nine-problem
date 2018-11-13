@@ -1,5 +1,6 @@
 *.iml
 .idea
-/target
-/.ensime_cache
+target
+.ensime
+.ensime_cache
 out
